@@ -1,37 +1,58 @@
 import * as React from 'react';
+import './wrangle.css';
 // import * as ReactDOM from 'react-dom';
 
 class State {
-    input: string;
-    inputCells: string[][] | null;
-    code: string;
-    action: string;
-    actionMethod: (() => void) | null;
+    Data: StateData;
     output: string;
-    results: any[];
+    results: string;
+}
+
+class StateData {
+    action: string;
+    code: string;
+    input: string;
+    where: string;
 }
 
 class FunctionInterop {
-    result: any;
+    result: string;
 }
+
+type whereSignature = (args: any[]) => boolean;
+
 
 class Wrangle extends React.Component<any, State> {
     constructor(props: any) {
         super(props);
-        this.state = {
-            action: '',
-            actionMethod: null,
-            code: '',
-            input: '',
-            inputCells: null,
-            output: '',
-            results: []
+        const saved = localStorage.getItem('saved');
+        if (saved) {
+            this.state = {
+                Data: JSON.parse(saved) as StateData,
+                output: '',
+                results: ''
+            };
+        } else {
+            this.state = {
+                Data: {
+                    action: "",
+                    code: "",
+                    input: "",
+                    where: ""
+                },
+                output: "",
+                results: "",
+            }
         }
     }
 
+    setStateData = (data: StateData) => {
+        this.setState({ ...this.state, Data: data }, this.computeOutput);
+    }
+
     onInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const state: State = { ...this.state, input: e.target.value, inputCells: this.getInputCells(e.target.value) };
-        this.setState(state, this.computeOutput);
+        const state: StateData = { ...this.state.Data, input: e.target.value, };
+        this.setStateData(state);
     }
 
     getInputCells = (input: string): string[][] => {
@@ -41,43 +62,72 @@ class Wrangle extends React.Component<any, State> {
     }
 
     onActionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const state: State = { ...this.state, action: e.target.value };
-        this.setState(state, this.computeOutput);
+        const state: StateData = { ...this.state.Data, action: e.target.value };
+        this.setStateData(state);
     }
 
     onCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const state: State = { ...this.state, code: e.target.value };
-        this.setState(state, this.computeOutput);
+        const state: StateData = { ...this.state.Data, code: e.target.value };
+        this.setStateData(state);
     }
 
-    didRender = () => {
-        var i = 9;
-        i += 8;
-        i.toFixed();
+    onWhereChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const state: StateData = { ...this.state.Data, where: e.target.value };
+        this.setStateData(state);
+    }
+
+    getWhere = (expression: string, invokeAargs: string[]): whereSignature => {
+        if (expression) {
+            const escaped = expression.replace(/#(\d+)/g, "$$$1")
+            const code = `return (${escaped});`;
+            const impl = new Function(...[...invokeAargs, code]);
+            return (args) => {
+                try {
+                    const where = impl(...args);
+                    return where;
+                } catch {
+                    return true;
+                }
+            }
+        } else {
+            return () => true;
+        }
     }
 
     computeOutput = () => {
-        let results: any[] = [];
+        let results = '';
         try {
             const win: any = window;
-    // return ${bt}${this.state.action}${bt}
-         //   const bt = '`';
+            const backTick = '`';
+            const replacedHashes = this.state.Data.action
+                .replace(/#(\d+)/gm, "$${$$$1}")
+                .replace(backTick, "${backTick}");
+            const inputCells = this.getInputCells(this.state.Data.input)
+            const maxCells: number = inputCells.reduce((prev, current) => Math.max(prev, current.length), 0);
             const wrappedAction = `
-${this.state.code}
-functionInterop.result = (function ($key, $1, $2, $3, $4) {
-    return (<div key={$key}>${this.state.action}</div>);
-})($key, $1, $2, $3, $4)
+${this.state.Data.code}
+functionInterop.result = ${backTick}${replacedHashes}${backTick};
 `;
-            const transformOutput = win.Babel.transform(wrappedAction, { presets: ['es2015', 'react'], retainLines: true, compact: false });
-            let output = transformOutput.code;
-            const invoke = new Function('React', 'functionInterop', '$key', '$1', '$2', '$3', '$4', output)
-            if (this.state.inputCells) {
-                const functionInterop: FunctionInterop = { result: null };
-                for (let i = 0; i < this.state.inputCells.length; i++) {
+            const transformOutput = win.Babel.transform(wrappedAction, { presets: ['es2015'], retainLines: true, compact: false });
+            let output = transformOutput.code as string;
+            if (inputCells) {
+                const invokeArgs: string[] = ['functionInterop', '$index', 'backTick', 'lines'];
+                const whereArgs: string[] = [];
+                for (let index = 0; index < maxCells; index++) {
+                    invokeArgs.push('$' + index);
+                    whereArgs.push('$' + index);
+                }
+                const invoke = new Function(...[...invokeArgs, output]);
+                const functionInterop: FunctionInterop = { result: '' };
+                const where = this.getWhere(this.state.Data.where, invokeArgs);
+                for (let index = 0; index < inputCells.length; index++) {
                     try {
-                        const cells = this.state.inputCells[i];
-                        invoke(...[React, functionInterop, 'maybe' + i, ...cells]);
-                        results.push(functionInterop.result)
+                        const cells = inputCells[index];
+                        const args = [functionInterop, index, backTick, inputCells, ...cells];
+                        if (where(args)) {
+                            invoke(...args);
+                            results += functionInterop.result;
+                        }
                         // var span = document.createElement('span');
                         // ReactDOM.render(functionInterop.result, span, this.didRender);
                         // output += span.innerText + '\n';
@@ -86,11 +136,13 @@ functionInterop.result = (function ($key, $1, $2, $3, $4) {
                     }
                 }
             }
-            const state: State = { ...this.state, output, actionMethod: (...args) => invoke(...args), results };
+            const state: State = { ...this.state, output, results };
             this.setState(state);
+            localStorage.setItem('saved', JSON.stringify(state.Data));
         } catch (error) {
-            const state: State = { ...this.state, output: error.message, actionMethod: null, results };
+            const state: State = { ...this.state, output: error.message, results };
             this.setState(state);
+            localStorage.setItem('saved', JSON.stringify(state.Data));
         }
     }
 
@@ -113,62 +165,101 @@ functionInterop.result = (function ($key, $1, $2, $3, $4) {
         }
     };
 
-    render() {
-        return (<div>
-            input:
-            <textarea
-                id="wrangle-input"
-                name="wrangle-input"
-                rows={4}
-                cols={45}
-                onKeyDown={this.handleTabs}
-                onChange={this.onInputChange}
-                value={this.state.input}>
-            </textarea>
-            code:
-            <textarea
-                id="wrangle-code"
-                name="wrangle-code"
-                rows={4}
-                cols={45}
-                onKeyDown={this.handleTabs}
-                onChange={this.onCodeChange}
-                value={this.state.code}
-            >
-            </textarea>
-            action:
-            <textarea
-                id="wrangle-action"
-                name="wrangle-action"
-                rows={4}
-                cols={45}
-                onKeyDown={this.handleTabs}
-                onChange={this.onActionChange}
-                value={this.state.action}
-            >
-            </textarea>
-            output:
-            <textarea
-                id="wrangle-output"
-                name="wrangle-output"
-                rows={4}
-                cols={45}
-                onChange={e => { return; }}
-                value={this.state.output}
-            >
-            </textarea>
-            results:
-            <textarea
-                id="wrangle-results"
-                name="wrangle-results"
-                rows={4}
-                cols={45}
-                onChange={e => { return; }}
-                value={this.state.results}
-            >
-            </textarea>
+    getTextAreaRows = (text: string):number => {
+        if (!text) {
+            return 1;
+        }
+        let lines = 1;
+        for (let i=0; i < text.length; i++) {
+            if (text.charAt(i) === "\n") {
+                lines++;
+            }
+        }
+        return lines;
+    }
 
-            <pre>{this.state.results}</pre>
+    render() {
+        return (<div className="container-fluid">
+            <div className="row">
+                <div className="col-12">
+                    <label htmlFor="wrangle-input"
+                        className="inputLabel">input:</label>
+                    <textarea
+                        id="wrangle-input"
+                        name="wrangle-input"
+                        className='fixedInput form-control'
+                        rows={this.getTextAreaRows(this.state.Data.input)}
+                        onKeyDown={this.handleTabs}
+                        onChange={this.onInputChange}
+                        value={this.state.Data.input}>
+                    </textarea>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label htmlFor="wrangle-code"
+                        className="inputLabel">code:</label>
+                    <textarea
+                        id="wrangle-code"
+                        name="wrangle-code"
+                        className='fixedInput form-control'
+                        rows={this.getTextAreaRows(this.state.Data.code)}
+                        onKeyDown={this.handleTabs}
+                        onChange={this.onCodeChange}
+                        value={this.state.Data.code}
+                        placeholder={`function someName(input) { return "hello " + input }`}>
+                    </textarea>
+                </div>
+            </div>
+            <label htmlFor="wrangle-where" className="inputLabel">where:</label>
+            <input type='text'
+                id="wrangle-where"
+                className="form-control"
+                value={this.state.Data.where}
+                onChange={this.onWhereChange}
+            />
+            <br />
+            <div className="row">
+                <div className="col-12">
+                    <label htmlFor="wrangle-action" className="inputLabel">action:</label>
+                    <textarea
+                        id="wrangle-action"
+                        name="wrangle-action"
+                        className='fixedInput form-control'
+                        rows={this.getTextAreaRows(this.state.Data.action)}
+                        onKeyDown={this.handleTabs}
+                        onChange={this.onActionChange}
+                        value={this.state.Data.action}>
+                    </textarea>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label htmlFor="wrangle-results" className="inputLabel"> results:</label>
+                    <textarea
+                        id="wrangle-results"
+                        name="wrangle-results"
+                        className="fixedInput form-control"
+                        rows={this.getTextAreaRows(this.state.results)}
+                        onChange={e => { return; }}
+                        value={this.state.results}>
+                    </textarea>
+                </div>
+            </div>
+            <div className="row">
+                <div className="col-12">
+                    <label htmlFor="wrangle-output" className="inputLabel"> output:</label>
+                    <textarea
+                        id="wrangle-output"
+                        name="wrangle-output"
+                        className='fixedInput form-control'
+                        rows={this.getTextAreaRows(this.state.output)}
+                        onChange={e => { return; }}
+                        value={this.state.output}
+                    >
+                    </textarea>
+                </div>
+            </div>
         </div>)
     }
 }
