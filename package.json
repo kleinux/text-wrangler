@@ -8,6 +8,7 @@
     "babel-generator": "^6.26.1",
     "babel-helpers": "^6.24.1",
     "babel-standalone": "^6.26.0",
+    "npm": "^6.5.0",
     "react": "^16.6.3",
     "react-dom": "^16.6.3",
     "react-router": "^4.3.1",
@@ -22,10 +23,10 @@
   },
   "devDependencies": {
     "@types/jest": "^23.3.10",
-    "@types/node": "^10.12.11",
-    "@types/react": "^16.7.11",
+    "@types/node": "^10.12.17",
+    "@types/react": "^16.7.17",
     "@types/react-dom": "^16.0.11",
     "@types/react-router-dom": "^4.3.1",
-    "typescript": "^3.2.1"
+    "typescript": "^3.2.2"
   }
 }
