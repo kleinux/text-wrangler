@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Wrangle from './components/wrangle/wrangle';
+import ide from './components/ide/ide';
 
 
 export class Application extends React.Component {
@@ -9,7 +9,7 @@ export class Application extends React.Component {
       <>
         <Router>
             <Switch>
-              <Route path="/" component={Wrangle} />
+              <Route path="/" component={ide} />
             </Switch>
         </Router>
       </>

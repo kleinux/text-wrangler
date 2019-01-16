@@ -165,12 +165,12 @@ functionInterop.result = ${backTick}${replacedHashes}${backTick};
         }
     };
 
-    getTextAreaRows = (text: string):number => {
+    getTextAreaRows = (text: string): number => {
         if (!text) {
             return 1;
         }
         let lines = 1;
-        for (let i=0; i < text.length; i++) {
+        for (let i = 0; i < text.length; i++) {
             if (text.charAt(i) === "\n") {
                 lines++;
             }
@@ -179,85 +179,87 @@ functionInterop.result = ${backTick}${replacedHashes}${backTick};
     }
 
     render() {
-        return (<div className="container-fluid">
-            <div className="row">
-                <div className="col-12">
-                    <label htmlFor="wrangle-input"
-                        className="inputLabel">input:</label>
-                    <textarea
-                        id="wrangle-input"
-                        name="wrangle-input"
-                        className='fixedInput form-control'
-                        rows={this.getTextAreaRows(this.state.Data.input)}
-                        onKeyDown={this.handleTabs}
-                        onChange={this.onInputChange}
-                        value={this.state.Data.input}>
-                    </textarea>
+        return (<div data-spy="scroll" data-target="#navbar-example3" data-offset="0">
+            <div className="container-fluid">
+                <div className="row">
+                    <div className="col-12">
+                        <label htmlFor="wrangle-input"
+                            className="inputLabel">input:</label>
+                        <textarea
+                            id="wrangle-input"
+                            name="wrangle-input"
+                            className='fixedInput form-control'
+                            rows={this.getTextAreaRows(this.state.Data.input)}
+                            onKeyDown={this.handleTabs}
+                            onChange={this.onInputChange}
+                            value={this.state.Data.input}>
+                        </textarea>
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label htmlFor="wrangle-code"
-                        className="inputLabel">code:</label>
-                    <textarea
-                        id="wrangle-code"
-                        name="wrangle-code"
-                        className='fixedInput form-control'
-                        rows={this.getTextAreaRows(this.state.Data.code)}
-                        onKeyDown={this.handleTabs}
-                        onChange={this.onCodeChange}
-                        value={this.state.Data.code}
-                        placeholder={`function someName(input) { return "hello " + input }`}>
-                    </textarea>
+                <div className="row">
+                    <div className="col-12">
+                        <label htmlFor="wrangle-code"
+                            className="inputLabel">code:</label>
+                        <textarea
+                            id="wrangle-code"
+                            name="wrangle-code"
+                            className='fixedInput form-control'
+                            rows={this.getTextAreaRows(this.state.Data.code)}
+                            onKeyDown={this.handleTabs}
+                            onChange={this.onCodeChange}
+                            value={this.state.Data.code}
+                            placeholder={`function someName(input) { return "hello " + input }`}>
+                        </textarea>
+                    </div>
                 </div>
-            </div>
-            <label htmlFor="wrangle-where" className="inputLabel">where:</label>
-            <input type='text'
-                id="wrangle-where"
-                className="form-control"
-                value={this.state.Data.where}
-                onChange={this.onWhereChange}
-            />
-            <br />
-            <div className="row">
-                <div className="col-12">
-                    <label htmlFor="wrangle-action" className="inputLabel">action:</label>
-                    <textarea
-                        id="wrangle-action"
-                        name="wrangle-action"
-                        className='fixedInput form-control'
-                        rows={this.getTextAreaRows(this.state.Data.action)}
-                        onKeyDown={this.handleTabs}
-                        onChange={this.onActionChange}
-                        value={this.state.Data.action}>
-                    </textarea>
+                <label htmlFor="wrangle-where" className="inputLabel">where:</label>
+                <input type='text'
+                    id="wrangle-where"
+                    className="form-control"
+                    value={this.state.Data.where}
+                    onChange={this.onWhereChange}
+                />
+                <br />
+                <div className="row">
+                    <div className="col-12">
+                        <label htmlFor="wrangle-action" className="inputLabel">action:</label>
+                        <textarea
+                            id="wrangle-action"
+                            name="wrangle-action"
+                            className='fixedInput form-control'
+                            rows={this.getTextAreaRows(this.state.Data.action)}
+                            onKeyDown={this.handleTabs}
+                            onChange={this.onActionChange}
+                            value={this.state.Data.action}>
+                        </textarea>
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label htmlFor="wrangle-results" className="inputLabel"> results:</label>
-                    <textarea
-                        id="wrangle-results"
-                        name="wrangle-results"
-                        className="fixedInput form-control"
-                        rows={this.getTextAreaRows(this.state.results)}
-                        onChange={e => { return; }}
-                        value={this.state.results}>
-                    </textarea>
+                <div className="row">
+                    <div className="col-12">
+                        <label htmlFor="wrangle-results" className="inputLabel"> results:</label>
+                        <textarea
+                            id="wrangle-results"
+                            name="wrangle-results"
+                            className="fixedInput form-control"
+                            rows={this.getTextAreaRows(this.state.results)}
+                            onChange={e => { return; }}
+                            value={this.state.results}>
+                        </textarea>
+                    </div>
                 </div>
-            </div>
-            <div className="row">
-                <div className="col-12">
-                    <label htmlFor="wrangle-output" className="inputLabel"> output:</label>
-                    <textarea
-                        id="wrangle-output"
-                        name="wrangle-output"
-                        className='fixedInput form-control'
-                        rows={this.getTextAreaRows(this.state.output)}
-                        onChange={e => { return; }}
-                        value={this.state.output}
-                    >
-                    </textarea>
+                <div className="row">
+                    <div className="col-12">
+                        <label htmlFor="wrangle-output" className="inputLabel"> output:</label>
+                        <textarea
+                            id="wrangle-output"
+                            name="wrangle-output"
+                            className='fixedInput form-control'
+                            rows={this.getTextAreaRows(this.state.output)}
+                            onChange={e => { return; }}
+                            value={this.state.output}
+                        >
+                        </textarea>
+                    </div>
                 </div>
             </div>
         </div>)

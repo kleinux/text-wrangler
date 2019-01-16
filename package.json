@@ -3,17 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@types/reactstrap": "^6.4.3",
     "axios": "^0.18.0",
     "babel-core": "^6.26.3",
     "babel-generator": "^6.26.1",
     "babel-helpers": "^6.24.1",
     "babel-standalone": "^6.26.0",
+    "bootstrap": "^4.2.1",
     "npm": "^6.5.0",
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts-ts": "3.1.0"
+    "react-scripts-ts": "3.1.0",
+    "reactstrap": "^6.5.0"
   },
   "scripts": {
     "start": "react-scripts-ts start",
